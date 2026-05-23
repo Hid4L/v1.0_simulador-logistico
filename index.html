@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador Logístico - Fase 2</title>
+    <link rel="stylesheet" href="estilo.css">
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="contenedor">
+        <div class="cabecera">
+            <h1>Simulador Logístico</h1>
+            <span class="subtitulo">Gemelo digital · Aprovisionamiento y Expediciones<br>L. J. Hidalgo</span>
+        </div>
+
+        <!-- Carga de CSV -->
+        <div class="carga">
+            <div class="area-carga">
+		<h2>Carga de archivos</h2>
+		<label for="csvApro">📥 Aprovisionamiento (CSV)</label>
+                <input type="file" id="csvApro" accept=".csv">
+            </div>
+            <div class="area-carga">
+                <label for="csvExpe">📤 Expediciones (CSV)</label>
+                <input type="file" id="csvExpe" accept=".csv">
+            </div>
+            <button id="btnProcesar">Procesar archivos</button>
+        </div>
+
+        <!-- Estadísticas -->
+        <div id="resultados" class="resultados" style="display: none;">
+            <h2>Estadísticas calculadas</h2>
+            <div id="statsApro" class="area-stats"></div>
+            <div id="statsExpe" class="area-stats"></div>
+        </div>
+
+        <!-- Validación de conflictos -->
+        <div id="validacionConflictos" class="validacion-conflictos" style="display: none;">
+            <h3>Validación de datos por muelle</h3>
+            <div id="conflictosInfo" class="conflictos-info"></div>
+            <button id="btnLimpiarConflictos" style="display:none;">Excluir registros conflictivos</button>
+        </div>
+
+        <!-- Filtro de outliers -->
+        <div id="filtroOutliers" class="filtro-outliers" style="display: none;">
+            <h3>Filtro de valores atípicos</h3>
+            <label>Excluir servicios mayores de <input type="number" id="umbralOutlier" min="1" step="1" value="120" style="width:80px"> minutos</label>
+            <button id="btnFiltrar">Aplicar filtro</button>
+            <div id="outliersInfo" class="outliers-info" style="margin-top:1rem;"></div>
+        </div>
+
+        <!-- Comparativa A/B (siempre visible) -->
+        <div id="simulacion" class="simulacion">
+            <h2>Comparativa de escenarios</h2>
+            <div class="escenarios-grid">
+                <!-- Escenario A -->
+                <div class="escenario">
+                    <h3>Escenario A</h3>
+                    <div class="parametros-grid">
+                        <label>Nº muelles <input type="number" id="paramMuellesA" min="1" value="3"></label>
+                        <label>Tiempo servicio (min) <input type="number" id="paramServicioMediaA" step="1" value="30"></label>
+                        <label>Desviación (min) <input type="number" id="paramServicioDesvA" step="1" value="10"></label>
+                        <label>Hora apertura <input type="time" id="paramAperturaA" value="08:00"></label>
+                        <label>Hora cierre <input type="time" id="paramCierreA" value="18:00"></label>
+                        <label>Modo llegadas
+                            <select id="paramModoLlegadaA">
+                                <option value="frecuencia">Frecuencia</option>
+                                <option value="cantidad">Cantidad diaria</option>
+                            </select>
+                        </label>
+                        <label id="labelFrecuenciaA">Tiempo entre llegadas <input type="number" id="paramLlegadasA" step="1" value="20"></label>
+                        <label id="labelCantidadMinA" style="display:none">Camiones/día (mín) <input type="number" id="paramCantidadMinA" min="1" value="10"></label>
+                        <label id="labelCantidadMaxA" style="display:none">Camiones/día (máx) <input type="number" id="paramCantidadMaxA" min="1" value="15"></label>
+                        <label>Factor operarios <input type="number" id="paramFactorA" step="0.1" min="0.5" value="1.0"></label>
+                    </div>
+                </div>
+                <!-- Escenario B -->
+                <div class="escenario">
+                    <h3>Escenario B</h3>
+                    <div class="parametros-grid">
+                        <label>Nº muelles <input type="number" id="paramMuellesB" min="1" value="5"></label>
+                        <label>Tiempo servicio (min) <input type="number" id="paramServicioMediaB" step="1" value="30"></label>
+                        <label>Desviación (min) <input type="number" id="paramServicioDesvB" step="1" value="10"></label>
+                        <label>Hora apertura <input type="time" id="paramAperturaB" value="08:00"></label>
+                        <label>Hora cierre <input type="time" id="paramCierreB" value="18:00"></label>
+                        <label>Modo llegadas
+                            <select id="paramModoLlegadaB">
+                                <option value="frecuencia">Frecuencia</option>
+                                <option value="cantidad">Cantidad diaria</option>
+                            </select>
+                        </label>
+                        <label id="labelFrecuenciaB">Tiempo entre llegadas <input type="number" id="paramLlegadasB" step="1" value="20"></label>
+                        <label id="labelCantidadMinB" style="display:none">Camiones/día (mín) <input type="number" id="paramCantidadMinB" min="1" value="10"></label>
+                        <label id="labelCantidadMaxB" style="display:none">Camiones/día (máx) <input type="number" id="paramCantidadMaxB" min="1" value="15"></label>
+                        <label>Factor operarios <input type="number" id="paramFactorB" step="0.1" min="0.5" value="1.0"></label>
+                    </div>
+                </div>
+            </div>
+            <div class="acciones-simulacion">
+                <button id="btnSimular">Ejecutar comparativa</button>
+                <button id="btnExportar" style="background:#34a853; margin-left:0.5rem;">📥 Exportar resultados CSV</button>
+            </div>
+
+            <!-- Resultados KPI -->
+            <div class="kpis-grid" id="kpisGrid" style="display: none;">
+                <div class="kpi-card">
+                    <h3>Escenario A</h3>
+                    <div id="kpiA"></div>
+                </div>
+                <div class="kpi-card">
+                    <h3>Escenario B</h3>
+                    <div id="kpiB"></div>
+                </div>
+            </div>
+
+            <!-- Gráficos -->
+            <div id="graficos" class="graficos" style="display: none;">
+                <h3>Ocupación de muelles (día simulado)</h3>
+                <div class="grafico-container"><canvas id="ganttCanvas"></canvas></div>
+                <h3>Evolución de la cola de espera</h3>
+                <div class="grafico-container"><canvas id="colaCanvas"></canvas></div>
+                <h3>Evolución del tiempo medio de espera en cola</h3>
+                <div class="grafico-container"><canvas id="esperaCanvas"></canvas></div>
+            </div>
+
+            <!-- Botón para abrir la animación (aparece tras simular) -->
+            <div class="acciones-animacion" style="display:none;" id="accionesAnimacion">
+                <button id="btnVerAnimacion" style="background:#6c5ce7;">🎬 Ver animación</button>
+            </div>
+        </div>
+
+        <!-- Animación (oculta hasta pulsar el botón) -->
+        <div id="animacion" class="animacion" style="display: none;">
+            <h2>Animación de la simulación</h2>
+            <div class="animacion-grid" id="animacionGrid">
+                <!-- Se llena dinámicamente -->
+            </div>
+            <div class="controles-animacion">
+                <button id="btnPlayPause">▶️</button>
+                <button id="btnRebobinar">⏮️</button>
+                <input type="range" id="sliderTiempo" min="0" max="1440" value="0" step="1">
+                <span id="tiempoActual">00:00</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="animacion.js"></script>
+</body>
+</html>
