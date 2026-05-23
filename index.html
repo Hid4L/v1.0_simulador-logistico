@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador Logístico - Fase 2</title>
+    <title>Simulador Logístico</title>
     <link rel="stylesheet" href="assets/styles/estilo.css">
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -76,8 +76,8 @@
                         <label title="Factor que reduce el tiempo de servicio. Ej: 2 = mitad de tiempo, 1 = sin cambio">Factor operarios <input type="number" id="paramFactorA" step="0.1" min="0.5" value="1.0"></label>
                     </div>
                 </div>
-                <!-- Escenario B -->
-                <div class="escenario">
+               
+                <div class="escenario"> 
                     <h3>Escenario B</h3>
                     <div class="parametros-grid">
                         <label title="Número de muelles disponibles para carga/descarga">Nº muelles <input type="number" id="paramMuellesB" min="1" value="5"></label>
@@ -99,11 +99,18 @@
                 </div>
             </div>
             <div class="acciones-simulacion">
+                <label style="margin-right: 1rem;">
+                    Nº de iteraciones: <input type="number" id="numIteraciones" min="1" max="1000" value="1" style="width:80px">
+                </label>
+                <label style="margin-right: 1rem;" id="labelIteracionGrafico">
+                    Iteración gráfico: <input type="number" id="iteracionGrafico" min="1" value="1" style="width:80px" disabled>
+                </label>
                 <button id="btnSimular" title="Ejecuta la simulación con los parámetros de ambos escenarios y muestra los resultados">Ejecutar comparativa</button>
                 <button id="btnExportar" style="background:#34a853; margin-left:0.5rem;" title="Descarga un archivo CSV con los KPIs de los dos escenarios">📥 Exportar resultados CSV</button>
             </div>
 
             <!-- Resultados KPI -->
+             <div id="tituloKPIs" style="display: none;"></div>
             <div class="kpis-grid" id="kpisGrid" style="display: none;">
                 <div class="kpi-card">
                     <h3>Escenario A</h3>
@@ -118,7 +125,7 @@
             <!-- Gráficos -->
             <div id="graficos" class="graficos" style="display: none;">
                 <h3>Ocupación de muelles (día simulado)</h3>
-                <div class="grafico-container"><canvas id="ganttCanvas"></canvas></div>
+                <div class="grafico-container" id="contenedorGantt"></div>
                 <h3>Evolución de la cola de espera</h3>
                 <div class="grafico-container"><canvas id="colaCanvas"></canvas></div>
                 <h3>Evolución del tiempo medio de espera en cola</h3>
