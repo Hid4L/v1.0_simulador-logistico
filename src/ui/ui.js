@@ -184,7 +184,7 @@ function formatearAgregado(agregado, f) {
     `;
 }
 
-function actualizarGraficosLineas(indiceIteracion) {
+function actualizarGraficosLineas(indiceIteracionl, apertura, cierre) {
     if (todasIteraciones.A.length === 0 || todasIteraciones.B.length === 0) return;
     const paramsA = store.params.A;
     const iterA = todasIteraciones.A[indiceIteracion];
