@@ -184,7 +184,7 @@ export function ejecutarSimulacionDetallada(params) {
             }
         }
 
-        if (proxLlegada <= proxFinServicio) {
+        if (proxLlegada <= proxFinServicio && proxLlegada !== Infinity) {
             tiempoActual = proxLlegada;
             const camion = llegadasProgramadas[idxLlegada];
             encolarConPrioridad(camion);
