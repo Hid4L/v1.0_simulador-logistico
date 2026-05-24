@@ -183,8 +183,8 @@ function formatearAgregado(agregado, f) {
         <p><strong>Camiones atendidos:</strong> Media: ${f(agregado.numCamiones.media)} | P50: ${f(agregado.numCamiones.p50)} | P95: ${f(agregado.numCamiones.p95)}</p>
     `;
 }
-
-function actualizarGraficosLineas(indiceIteracionl, apertura, cierre) {
+// pongo los parametro Global
+function actualizarGraficosLineas(indiceIteracionl, aperturaGlobal, cierreGlobal) {
     if (todasIteraciones.A.length === 0 || todasIteraciones.B.length === 0) return;
     const paramsA = store.params.A;
     const iterA = todasIteraciones.A[indiceIteracion];
