@@ -474,14 +474,15 @@ export function initUI() {
     iteracionGraficoInput.addEventListener('input', () => {
         const idx = parseInt(iteracionGraficoInput.value) - 1;
         if (idx < 0 || !todasIteraciones.A[idx]) return;
-        const paramsA = store.params.A;
+        //const paramsA = store.params.A;
         dibujarGantt(
             todasIteraciones.A[idx].registros,
             todasIteraciones.B[idx].registros,
-            paramsA.aperturaMin,
-            paramsA.cierreMin
+            //paramsA.aperturaMin,
+            //paramsA.cierreMin
+            limitesGlobales.apertura, limitesGlobales.cierre
         );
-        actualizarGraficosLineas(idx);
+        actualizarGraficosLineas(idx, limitesGlobales.apertura, limitesGlobales.cierre);
     });
 
     // --- Exportar CSV ---
