@@ -246,3 +246,22 @@ export function ejecutarSimulacionDetallada(params) {
     // ...
     return { registros, eventosCola, eventosEspera };
 }
+/**
+ * Calcula KPIs a partir de los registros de simulación.
+ */
+export function calcularKPIs(registros, muelles) {
+    if (registros.length === 0) return { error: "No se atendió ningún camión." };
+    const leadTime = registros.map(r => r.finServicio - r.inicioServicio);
+    const esperas = registros.map(r => r.espera);
+    const totales = registros.map(r => r.finServicio - r.llegada);
+    const tiempoTotalServicio = registros.reduce((acc, r) => acc + (r.finServicio - r.inicioServicio), 0);
+    const tiempoSimulado = 24 * 60;
+    const ocupMedia = (tiempoTotalServicio / (muelles * tiempoSimulado)) * 100;
+    return {
+        leadTimeMedio: mean(leadTime),
+        esperaMedia: mean(esperas),
+        estanciaMedia: mean(totales),
+        ocupacionMuelles: ocupMedia.toFixed(1),
+        numCamiones: registros.length
+    };
+}
