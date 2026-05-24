@@ -202,9 +202,10 @@ function actualizarGraficosLineas(idx, apertura, cierre) {
 
 // ========== INICIALIZACIÓN ==========
 export function initUI() {
+   console.log('initUi arrancado');
     document.getElementById('simulacion').style.display = 'block';
     sincronizarUIconStore();
-
+console.log('sincronizar con initUi arrancado');
     const numIteracionesInput = document.getElementById('numIteraciones');
     const iteracionGraficoInput = document.getElementById('iteracionGrafico');
 
@@ -214,7 +215,7 @@ export function initUI() {
         iteracionGraficoInput.max = n;
         if (iteracionGraficoInput.value > n) iteracionGraficoInput.value = n;
     });
-
+console.log('btnSimular existe?', !!document.getElementById('btnSimular'));
     // ========== BOTONES MODO AVANZADO ==========
     document.getElementById('btnAvanzadoA').addEventListener('click', () => {
         const panel = document.getElementById('panelAvanzadoA');
