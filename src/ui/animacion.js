@@ -91,7 +91,7 @@ function actualizarMuelles(esc, ocupacionMuelles, minutoAbs) {
         const camionDiv = document.getElementById(`camion${esc}-${m}`);
         const porcentajeDiv = document.getElementById(`porcentaje${esc}-${m}`);
         if (camionDiv) {
-            camionDiv.textContent = ocupacion > 50 ? ICONO_CAMION : '';
+            camionDiv.textContent = ocupacion > 55 ? ICONO_CAMION : '';
         }
         if (porcentajeDiv) {
             porcentajeDiv.textContent = ocupacion.toFixed(0) + '%';
