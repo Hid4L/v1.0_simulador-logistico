@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador Logístico - Fase 2</title>
+    <title>Simulador Logístico</title>
     <link rel="stylesheet" href="assets/styles/estilo.css">
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -50,100 +50,102 @@
             <div id="outliersInfo" class="outliers-info" style="margin-top:1rem;"></div>
         </div>
 
-        <!-- Comparativa A/B (siempre visible) -->
+        <!-- Comparativa A/B -->
         <div id="simulacion" class="simulacion">
             <h2>Comparativa de escenarios</h2>
             <p style="font-size:0.85rem; color:#666; margin-bottom:1rem;">💡 Pase el ratón sobre cualquier campo para ver qué significa.</p>
-            
-<div class="escenarios-grid">
-    <!-- ==================== ESCENARIO A ==================== -->
-    <div class="escenario">
-        <h3>Escenario A</h3>
-        <div class="parametros-grid">
-            <label title="Número de muelles disponibles para carga/descarga">Nº muelles <input type="number" id="paramMuellesA" min="1" value="3"></label>
-            <label title="Modo de generación de llegadas: frecuencia (tiempo medio entre camiones) o cantidad diaria fija">Modo llegadas
-                <select id="paramModoLlegadaA">
-                    <option value="frecuencia">Frecuencia</option>
-                    <option value="cantidad">Cantidad diaria</option>
-                </select>
-            </label>
-            <label id="labelFrecuenciaA" title="Tiempo medio entre la llegada de un camión y el siguiente (solo modo frecuencia)">Tiempo entre llegadas <input type="number" id="paramLlegadasA" step="1" value="20"></label>
-            <label id="labelCantidadMinA" style="display:none" title="Número mínimo de camiones que llegarán cada día (solo modo cantidad diaria)">Camiones/día (mín) <input type="number" id="paramCantidadMinA" min="1" value="10"></label>
-            <label id="labelCantidadMaxA" style="display:none" title="Número máximo de camiones que llegarán cada día (solo modo cantidad diaria)">Camiones/día (máx) <input type="number" id="paramCantidadMaxA" min="1" value="15"></label>
-            <label title="Tiempo medio que tarda un camión en ser cargado/descargado">Tiempo servicio (min) <input type="number" id="paramServicioMediaA" step="1" value="30"></label>
-            <label title="Variabilidad del tiempo de servicio (distribución normal)">Desviación (min) <input type="number" id="paramServicioDesvA" step="1" value="10"></label>
-            <label title="Porcentaje de camiones que son furgonetas de reparto (tienen prioridad en la cola)">% Furgonetas <input type="number" id="paramPorcentajeFurgoA" min="0" max="100" step="1" value="0"></label>
-            <button type="button" id="btnAvanzadoA" class="btn-avanzado">⚙️ Modo avanzado</button>
-        </div>
-        <!-- Panel avanzado (oculto por defecto) -->
-        <div id="panelAvanzadoA" class="panel-avanzado" style="display:none;">
-            <h4>Parámetros avanzados</h4>
-            <div class="parametros-grid">
-                <label title="Franja horaria en la que pueden llegar camiones. Fuera de ella no se generan llegadas">Horario llegadas inicio <input type="time" id="paramLlegadaInicioA" value="08:00"></label>
-                <label title="Franja horaria en la que pueden llegar camiones. Fuera de ella no se generan llegadas">Horario llegadas fin <input type="time" id="paramLlegadaFinA" value="18:00"></label>
-                <label title="Hora de inicio de la jornada laboral en los muelles">Apertura muelles <input type="time" id="paramAperturaA" value="08:00"></label>
-                <label title="Hora de fin de la jornada laboral en los muelles">Cierre muelles <input type="time" id="paramCierreA" value="18:00"></label>
-                <label title="Factor que reduce el tiempo de servicio. Ej: 2 = mitad de tiempo, 1 = sin cambio">Factor operarios <input type="number" id="paramFactorA" step="0.1" min="0.5" value="1.0"></label>
-                <label title="Intervalos con mayor tasa de llegadas. Formato: 08:00-10:00x2, 13:00-15:00x1.5">Horas pico <input type="text" id="paramHorasPicoA" placeholder="08:00-10:00x2, 13:00-15:00x1.5"></label>
-                <label title="Intervalo en el que se añaden muelles extra. Formato: 10:00-14:00">Refuerzo horario (inicio) <input type="time" id="paramRefuerzoInicioA" value="10:00"></label>
-                <label title="Intervalo en el que se añaden muelles extra">Refuerzo horario (fin) <input type="time" id="paramRefuerzoFinA" value="14:00"></label>
-                <label title="Número de muelles adicionales durante el refuerzo">Muelles extra <input type="number" id="paramMuellesExtraA" min="0" value="0"></label>
-                <label title="Probabilidad diaria de que un muelle libre se averíe (0-1)">Riesgo avería <input type="number" id="paramRiesgoAveriaA" min="0" max="1" step="0.01" value="0"></label>
-                <label title="Duración media de la reparación de una avería (min)">Duración reparación (min) <input type="number" id="paramDuracionReparacionA" min="1" step="1" value="60"></label>
+            <div class="escenarios-grid">
+                <!-- ==================== ESCENARIO A ==================== -->
+                <div class="escenario">
+                    <h3>Escenario A</h3>
+                    <div class="parametros-grid">
+                        <label title="Número de muelles disponibles para carga/descarga">Nº muelles <input type="number" id="paramMuellesA" min="1" value="3"></label>
+                        <label title="Modo de generación de llegadas: frecuencia (tiempo medio entre camiones) o cantidad diaria fija">Modo llegadas
+                            <select id="paramModoLlegadaA">
+                                <option value="frecuencia">Frecuencia</option>
+                                <option value="cantidad">Cantidad diaria</option>
+                            </select>
+                        </label>
+                        <label id="labelFrecuenciaA" title="Tiempo medio entre la llegada de un camión y el siguiente (solo modo frecuencia)">Tiempo entre llegadas <input type="number" id="paramLlegadasA" step="1" value="20"></label>
+                        <label id="labelCantidadMinA" style="display:none" title="Número mínimo de camiones que llegarán cada día (solo modo cantidad diaria)">Camiones/día (mín) <input type="number" id="paramCantidadMinA" min="1" value="10"></label>
+                        <label id="labelCantidadMaxA" style="display:none" title="Número máximo de camiones que llegarán cada día (solo modo cantidad diaria)">Camiones/día (máx) <input type="number" id="paramCantidadMaxA" min="1" value="15"></label>
+                        <label title="Tiempo medio que tarda un camión en ser cargado/descargado">Tiempo servicio (min) <input type="number" id="paramServicioMediaA" step="1" value="30"></label>
+                        <label title="Variabilidad del tiempo de servicio (distribución normal)">Desviación (min) <input type="number" id="paramServicioDesvA" step="1" value="10"></label>
+                        <label title="Porcentaje de camiones que son furgonetas de reparto (tienen prioridad en la cola)">% Furgonetas <input type="number" id="paramPorcentajeFurgoA" min="0" max="100" step="1" value="0"></label>
+                        <button type="button" id="btnAvanzadoA" class="btn-avanzado">⚙️ Modo avanzado</button>
+                    </div>
+                    <!-- Panel avanzado (oculto por defecto) -->
+                    <div id="panelAvanzadoA" class="panel-avanzado" style="display:none;">
+                        <h4>Parámetros avanzados</h4>
+                        <div class="parametros-grid">
+                            <label title="Franja horaria en la que pueden llegar camiones. Fuera de ella no se generan llegadas">Horario llegadas inicio <input type="time" id="paramLlegadaInicioA" value="08:00"></label>
+                            <label title="Franja horaria en la que pueden llegar camiones. Fuera de ella no se generan llegadas">Horario llegadas fin <input type="time" id="paramLlegadaFinA" value="18:00"></label>
+                            <label title="Hora de inicio de la jornada laboral en los muelles">Apertura muelles <input type="time" id="paramAperturaA" value="08:00"></label>
+                            <label title="Hora de fin de la jornada laboral en los muelles">Cierre muelles <input type="time" id="paramCierreA" value="18:00"></label>
+                            <label title="Factor que reduce el tiempo de servicio. Ej: 2 = mitad de tiempo, 1 = sin cambio">Factor operarios <input type="number" id="paramFactorA" step="0.1" min="0.5" value="1.0"></label>
+                            <label title="Intervalos con mayor tasa de llegadas. Formato: 08:00-10:00x2, 13:00-15:00x1.5">Horas pico <input type="text" id="paramHorasPicoA" placeholder="08:00-10:00x2, 13:00-15:00x1.5"></label>
+                            <label title="Intervalo en el que se añaden muelles extra. Formato: 10:00-14:00">Refuerzo horario (inicio) <input type="time" id="paramRefuerzoInicioA" value="10:00"></label>
+                            <label title="Intervalo en el que se añaden muelles extra">Refuerzo horario (fin) <input type="time" id="paramRefuerzoFinA" value="14:00"></label>
+                            <label title="Número de muelles adicionales durante el refuerzo">Muelles extra <input type="number" id="paramMuellesExtraA" min="0" value="0"></label>
+                            <label title="Probabilidad diaria de que un muelle libre se averíe (0-1)">Riesgo avería <input type="number" id="paramRiesgoAveriaA" min="0" max="1" step="0.01" value="0"></label>
+                            <label title="Duración media de la reparación de una avería (min)">Duración reparación (min) <input type="number" id="paramDuracionReparacionA" min="1" step="1" value="60"></label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==================== ESCENARIO B ==================== -->
+                <div class="escenario">
+                    <h3>Escenario B</h3>
+                    <div class="parametros-grid">
+                        <label title="Número de muelles disponibles para carga/descarga">Nº muelles <input type="number" id="paramMuellesB" min="1" value="5"></label>
+                        <label title="Modo de generación de llegadas: frecuencia (tiempo medio entre camiones) o cantidad diaria fija">Modo llegadas
+                            <select id="paramModoLlegadaB">
+                                <option value="frecuencia">Frecuencia</option>
+                                <option value="cantidad">Cantidad diaria</option>
+                            </select>
+                        </label>
+                        <label id="labelFrecuenciaB" title="Tiempo medio entre la llegada de un camión y el siguiente (solo modo frecuencia)">Tiempo entre llegadas <input type="number" id="paramLlegadasB" step="1" value="20"></label>
+                        <label id="labelCantidadMinB" style="display:none" title="Número mínimo de camiones que llegarán cada día (solo modo cantidad diaria)">Camiones/día (mín) <input type="number" id="paramCantidadMinB" min="1" value="10"></label>
+                        <label id="labelCantidadMaxB" style="display:none" title="Número máximo de camiones que llegarán cada día (solo modo cantidad diaria)">Camiones/día (máx) <input type="number" id="paramCantidadMaxB" min="1" value="15"></label>
+                        <label title="Tiempo medio que tarda un camión en ser cargado/descargado">Tiempo servicio (min) <input type="number" id="paramServicioMediaB" step="1" value="30"></label>
+                        <label title="Variabilidad del tiempo de servicio (distribución normal)">Desviación (min) <input type="number" id="paramServicioDesvB" step="1" value="10"></label>
+                        <label title="Porcentaje de camiones que son furgonetas de reparto (tienen prioridad en la cola)">% Furgonetas <input type="number" id="paramPorcentajeFurgoB" min="0" max="100" step="1" value="0"></label>
+                        <button type="button" id="btnAvanzadoB" class="btn-avanzado">⚙️ Modo avanzado</button>
+                    </div>
+                    <!-- Panel avanzado (oculto por defecto) -->
+                    <div id="panelAvanzadoB" class="panel-avanzado" style="display:none;">
+                        <h4>Parámetros avanzados</h4>
+                        <div class="parametros-grid">
+                            <label title="Franja horaria en la que pueden llegar camiones. Fuera de ella no se generan llegadas">Horario llegadas inicio <input type="time" id="paramLlegadaInicioB" value="08:00"></label>
+                            <label title="Franja horaria en la que pueden llegar camiones. Fuera de ella no se generan llegadas">Horario llegadas fin <input type="time" id="paramLlegadaFinB" value="18:00"></label>
+                            <label title="Hora de inicio de la jornada laboral en los muelles">Apertura muelles <input type="time" id="paramAperturaB" value="08:00"></label>
+                            <label title="Hora de fin de la jornada laboral en los muelles">Cierre muelles <input type="time" id="paramCierreB" value="18:00"></label>
+                            <label title="Factor que reduce el tiempo de servicio. Ej: 2 = mitad de tiempo, 1 = sin cambio">Factor operarios <input type="number" id="paramFactorB" step="0.1" min="0.5" value="1.0"></label>
+                            <label title="Intervalos con mayor tasa de llegadas. Formato: 08:00-10:00x2, 13:00-15:00x1.5">Horas pico <input type="text" id="paramHorasPicoB" placeholder="08:00-10:00x2, 13:00-15:00x1.5"></label>
+                            <label title="Intervalo en el que se añaden muelles extra. Formato: 10:00-14:00">Refuerzo horario (inicio) <input type="time" id="paramRefuerzoInicioB" value="10:00"></label>
+                            <label title="Intervalo en el que se añaden muelles extra">Refuerzo horario (fin) <input type="time" id="paramRefuerzoFinB" value="14:00"></label>
+                            <label title="Número de muelles adicionales durante el refuerzo">Muelles extra <input type="number" id="paramMuellesExtraB" min="0" value="0"></label>
+                            <label title="Probabilidad diaria de que un muelle libre se averíe (0-1)">Riesgo avería <input type="number" id="paramRiesgoAveriaB" min="0" max="1" step="0.01" value="0"></label>
+                            <label title="Duración media de la reparación de una avería (min)">Duración reparación (min) <input type="number" id="paramDuracionReparacionB" min="1" step="1" value="60"></label>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
 
-    <!-- ==================== ESCENARIO B ==================== -->
-    <div class="escenario">
-        <h3>Escenario B</h3>
-        <div class="parametros-grid">
-            <label title="Número de muelles disponibles para carga/descarga">Nº muelles <input type="number" id="paramMuellesB" min="1" value="5"></label>
-            <label title="Modo de generación de llegadas: frecuencia (tiempo medio entre camiones) o cantidad diaria fija">Modo llegadas
-                <select id="paramModoLlegadaB">
-                    <option value="frecuencia">Frecuencia</option>
-                    <option value="cantidad">Cantidad diaria</option>
-                </select>
-            </label>
-            <label id="labelFrecuenciaB" title="Tiempo medio entre la llegada de un camión y el siguiente (solo modo frecuencia)">Tiempo entre llegadas <input type="number" id="paramLlegadasB" step="1" value="20"></label>
-            <label id="labelCantidadMinB" style="display:none" title="Número mínimo de camiones que llegarán cada día (solo modo cantidad diaria)">Camiones/día (mín) <input type="number" id="paramCantidadMinB" min="1" value="10"></label>
-            <label id="labelCantidadMaxB" style="display:none" title="Número máximo de camiones que llegarán cada día (solo modo cantidad diaria)">Camiones/día (máx) <input type="number" id="paramCantidadMaxB" min="1" value="15"></label>
-            <label title="Tiempo medio que tarda un camión en ser cargado/descargado">Tiempo servicio (min) <input type="number" id="paramServicioMediaB" step="1" value="30"></label>
-            <label title="Variabilidad del tiempo de servicio (distribución normal)">Desviación (min) <input type="number" id="paramServicioDesvB" step="1" value="10"></label>
-            <label title="Porcentaje de camiones que son furgonetas de reparto (tienen prioridad en la cola)">% Furgonetas <input type="number" id="paramPorcentajeFurgoB" min="0" max="100" step="1" value="0"></label>
-            <button type="button" id="btnAvanzadoB" class="btn-avanzado">⚙️ Modo avanzado</button>
-        </div>
-        <!-- Panel avanzado (oculto por defecto) -->
-        <div id="panelAvanzadoB" class="panel-avanzado" style="display:none;">
-            <h4>Parámetros avanzados</h4>
-            <div class="parametros-grid">
-                <label title="Franja horaria en la que pueden llegar camiones. Fuera de ella no se generan llegadas">Horario llegadas inicio <input type="time" id="paramLlegadaInicioB" value="08:00"></label>
-                <label title="Franja horaria en la que pueden llegar camiones. Fuera de ella no se generan llegadas">Horario llegadas fin <input type="time" id="paramLlegadaFinB" value="18:00"></label>
-                <label title="Hora de inicio de la jornada laboral en los muelles">Apertura muelles <input type="time" id="paramAperturaB" value="08:00"></label>
-                <label title="Hora de fin de la jornada laboral en los muelles">Cierre muelles <input type="time" id="paramCierreB" value="18:00"></label>
-                <label title="Factor que reduce el tiempo de servicio. Ej: 2 = mitad de tiempo, 1 = sin cambio">Factor operarios <input type="number" id="paramFactorB" step="0.1" min="0.5" value="1.0"></label>
-                <label title="Intervalos con mayor tasa de llegadas. Formato: 08:00-10:00x2, 13:00-15:00x1.5">Horas pico <input type="text" id="paramHorasPicoB" placeholder="08:00-10:00x2, 13:00-15:00x1.5"></label>
-                <label title="Intervalo en el que se añaden muelles extra. Formato: 10:00-14:00">Refuerzo horario (inicio) <input type="time" id="paramRefuerzoInicioB" value="10:00"></label>
-                <label title="Intervalo en el que se añaden muelles extra">Refuerzo horario (fin) <input type="time" id="paramRefuerzoFinB" value="14:00"></label>
-                <label title="Número de muelles adicionales durante el refuerzo">Muelles extra <input type="number" id="paramMuellesExtraB" min="0" value="0"></label>
-                <label title="Probabilidad diaria de que un muelle libre se averíe (0-1)">Riesgo avería <input type="number" id="paramRiesgoAveriaB" min="0" max="1" step="0.01" value="0"></label>
-                <label title="Duración media de la reparación de una avería (min)">Duración reparación (min) <input type="number" id="paramDuracionReparacionB" min="1" step="1" value="60"></label>
-            </div>
-        </div>
-    </div>
-</div>
-
-		
-
-
-            </div>
-		
+            <!-- Acciones de simulación -->
             <div class="acciones-simulacion">
+                <label style="margin-right: 1rem;">
+                    Nº de iteraciones: <input type="number" id="numIteraciones" min="1" max="1000" value="1" style="width:80px">
+                </label>
+                <label style="margin-right: 1rem;" id="labelIteracionGrafico">
+                    Iteración gráfico: <input type="number" id="iteracionGrafico" min="1" value="1" style="width:80px" disabled>
+                </label>
                 <button id="btnSimular" title="Ejecuta la simulación con los parámetros de ambos escenarios y muestra los resultados">Ejecutar comparativa</button>
                 <button id="btnExportar" style="background:#34a853; margin-left:0.5rem;" title="Descarga un archivo CSV con los KPIs de los dos escenarios">📥 Exportar resultados CSV</button>
             </div>
 
-            <!-- Resultados KPI -->
+            <!-- KPIs -->
+            <div id="tituloKPIs" style="display: none;"></div>
             <div class="kpis-grid" id="kpisGrid" style="display: none;">
                 <div class="kpi-card">
                     <h3>Escenario A</h3>
@@ -158,20 +160,19 @@
             <!-- Gráficos -->
             <div id="graficos" class="graficos" style="display: none;">
                 <h3>Ocupación de muelles (día simulado)</h3>
-                <div class="grafico-container"><canvas id="ganttCanvas"></canvas></div>
+                <div class="grafico-container" id="contenedorGantt"></div>
                 <h3>Evolución de la cola de espera</h3>
                 <div class="grafico-container"><canvas id="colaCanvas"></canvas></div>
                 <h3>Evolución del tiempo medio de espera en cola</h3>
                 <div class="grafico-container"><canvas id="esperaCanvas"></canvas></div>
             </div>
 
-            <!-- Botón para abrir la animación -->
+            <!-- Animación -->
             <div class="acciones-animacion" style="display:none;" id="accionesAnimacion">
                 <button id="btnVerAnimacion" style="background:#6c5ce7;">🎬 Ver animación</button>
             </div>
         </div>
 
-        <!-- Animación -->
         <div id="animacion" class="animacion" style="display: none;">
             <h2>Animación de la simulación</h2>
             <div class="animacion-grid" id="animacionGrid"></div>
@@ -187,3 +188,4 @@
     <script type="module" src="main.js"></script>
 </body>
 </html>
+
