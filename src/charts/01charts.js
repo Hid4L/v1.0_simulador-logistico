@@ -88,6 +88,7 @@ export function dibujarGantt(registrosA, registrosB, aperturaMin, cierreMin) {
                 },
                 y: {
                     ticks: {
+                        // Asegura que las etiquetas no se corten
                         padding: 10,
                         font: { size: 12 }
                     }
@@ -102,6 +103,10 @@ export function dibujarGantt(registrosA, registrosB, aperturaMin, cierreMin) {
     });
 }
 
+
+    setTimeout(() => { if (ganttChart) ganttChart.resize(); }, 100);
+}
+
 export function dibujarCola(eventosA, eventosB, aperturaMin, cierreMin) {
     const ctx = document.getElementById('colaCanvas').getContext('2d');
     if (colaChart) colaChart.destroy();
@@ -113,22 +118,8 @@ export function dibujarCola(eventosA, eventosB, aperturaMin, cierreMin) {
         type: 'line',
         data: {
             datasets: [
-                {
-                    label: 'Cola A',
-                    data: datosA,
-                    borderColor: '#0070C0',
-                    backgroundColor: 'rgba(0,112,192,0.1)',
-                    fill: true,
-                    stepped: true
-                },
-                {
-                    label: 'Cola B',
-                    data: datosB,
-                    borderColor: '#FFB81C',
-                    backgroundColor: 'rgba(255,184,28,0.1)',
-                    fill: true,
-                    stepped: true
-                }
+                { label: 'Cola A', data: datosA, borderColor: '#0070C0', backgroundColor: 'rgba(0,112,192,0.1)', fill: true, stepped: true },
+                { label: 'Cola B', data: datosB, borderColor: '#FFB81C', backgroundColor: 'rgba(255,184,28,0.1)', fill: true, stepped: true }
             ]
         },
         options: {
@@ -136,13 +127,7 @@ export function dibujarCola(eventosA, eventosB, aperturaMin, cierreMin) {
             maintainAspectRatio: false,
             plugins: { legend: { position: 'bottom' } },
             scales: {
-                x: {
-                    type: 'linear',
-                    min: aperturaMin,
-                    max: cierreMin,
-                    title: { display: true, text: 'Hora del día' },
-                    ticks: { callback: val => formatMinutos(val) }
-                },
+                x: { type: 'linear', min: aperturaMin, max: cierreMin, title: { display: true, text: 'Hora del día' }, ticks: { callback: val => formatMinutos(val) } },
                 y: { title: { display: true, text: 'Camiones en cola' }, beginAtZero: true }
             }
         }
@@ -176,22 +161,8 @@ export function dibujarEsperaMedia(eventosA, eventosB, aperturaMin, cierreMin) {
         type: 'line',
         data: {
             datasets: [
-                {
-                    label: 'Espera media A (min)',
-                    data: datosA,
-                    borderColor: '#0070C0',
-                    backgroundColor: 'rgba(0,112,192,0.1)',
-                    fill: false,
-                    tension: 0.3
-                },
-                {
-                    label: 'Espera media B (min)',
-                    data: datosB,
-                    borderColor: '#FFB81C',
-                    backgroundColor: 'rgba(255,184,28,0.1)',
-                    fill: false,
-                    tension: 0.3
-                }
+                { label: 'Espera media A (min)', data: datosA, borderColor: '#0070C0', backgroundColor: 'rgba(0,112,192,0.1)', fill: false, tension: 0.3 },
+                { label: 'Espera media B (min)', data: datosB, borderColor: '#FFB81C', backgroundColor: 'rgba(255,184,28,0.1)', fill: false, tension: 0.3 }
             ]
         },
         options: {
@@ -199,13 +170,7 @@ export function dibujarEsperaMedia(eventosA, eventosB, aperturaMin, cierreMin) {
             maintainAspectRatio: false,
             plugins: { legend: { position: 'bottom' } },
             scales: {
-                x: {
-                    type: 'linear',
-                    min: aperturaMin,
-                    max: cierreMin,
-                    title: { display: true, text: 'Hora del día' },
-                    ticks: { callback: val => formatMinutos(val) }
-                },
+                x: { type: 'linear', min: aperturaMin, max: cierreMin, title: { display: true, text: 'Hora del día' }, ticks: { callback: val => formatMinutos(val) } },
                 y: { title: { display: true, text: 'Minutos de espera' }, beginAtZero: true }
             }
         }
