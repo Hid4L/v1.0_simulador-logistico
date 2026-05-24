@@ -1,11 +1,9 @@
 // src/ui/animacion.js
 import { formatMinutos } from '../utils/math.js';
-import { store } from '../state/store.js';
 
 let animacionInterval = null;
 let tiempoSimulacion = 0;
 let reproduciendo = false;
-let duracionTotal = 1440;
 const ICONO_CAMION = '🚛';
 
 export function initAnimacion() {
@@ -19,13 +17,12 @@ export function initAnimacion() {
 }
 
 function iniciarAnimacion() {
-    if (!store.results.A || !store.results.B) {
+    if (!window.seriesAgregadas) {
         alert('Primero ejecuta una simulación.');
         return;
     }
     document.getElementById('animacion').style.display = 'block';
-    duracionTotal = 1440;
-    tiempoSimulacion = 0;
+    tiempoSimulacion = window.seriesAgregadas.params.aperturaMin;
     construirUI();
     actualizarSlider();
     actualizarAnimacion(tiempoSimulacion);
@@ -34,22 +31,29 @@ function iniciarAnimacion() {
 function construirUI() {
     const grid = document.getElementById('animacionGrid');
     grid.innerHTML = '';
+    const { params } = window.seriesAgregadas;
+
     ['A', 'B'].forEach(esc => {
-        const params = store.params[esc];
-        const muelles = params.muelles;
+        const numMuelles = esc === 'A' ? params.muellesA : params.muellesB;
         const carril = document.createElement('div');
         carril.className = 'carril-animacion';
         carril.id = `carril${esc}`;
         carril.innerHTML = `
-            <div class="zona-llegada">
-                <span>🕒 Llegadas</span>
-                <div class="cola-container" id="cola${esc}"></div>
+            <div class="zona-llegada" style="width: 120px; flex-direction: column; align-items: center;">
+                <span>🕒 Cola media</span>
+                <div style="font-size: 1.5rem; font-weight: bold;" id="colaMedia${esc}">0</div>
+                <span style="font-size: 0.7rem;">camiones</span>
+                <div style="margin-top: 0.5rem;">
+                    <span>⏱️ Espera media</span>
+                    <div class="reloj-espera" style="font-size: 1rem; padding: 2px 6px;" id="esperaMedia${esc}">00:00</div>
+                </div>
             </div>
             <div class="zona-muelles" id="muelles${esc}">
-                ${Array.from({ length: muelles }, (_, i) => `
-                    <div class="muelle-columna" id="muelle${esc}-${i}">
+                ${Array.from({ length: numMuelles }, (_, i) => `
+                    <div class="muelle-columna" style="width: 80px;">
                         <div class="muelle-numero">M${i+1}</div>
-                        <div class="camion-emergente" id="camion${esc}-${i}"></div>
+                        <div id="camion${esc}-${i}" style="font-size: 2rem; text-align: center; margin-top: 10px;"></div>
+                        <div style="font-size: 0.7rem; text-align: center;" id="porcentaje${esc}-${i}">0%</div>
                     </div>
                 `).join('')}
             </div>
@@ -58,41 +62,47 @@ function construirUI() {
     });
 }
 
-function actualizarAnimacion(minuto) {
-    ['A', 'B'].forEach(esc => {
-        const results = store.results[esc];
-        if (!results) return;
-        const registros = results.registros;
-        const muelles = store.params[esc].muelles;
+function actualizarAnimacion(minutoAbs) {
+    const { colaA, colaB, esperaA, esperaB, ocupacionMuellesA, ocupacionMuellesB, params } = window.seriesAgregadas;
+    document.getElementById('colaMediaA').textContent = obtenerValorEnMinuto(colaA, minutoAbs).toFixed(1);
+    document.getElementById('colaMediaB').textContent = obtenerValorEnMinuto(colaB, minutoAbs).toFixed(1);
+    document.getElementById('esperaMediaA').textContent = formatMinutos(obtenerValorEnMinuto(esperaA, minutoAbs));
+    document.getElementById('esperaMediaB').textContent = formatMinutos(obtenerValorEnMinuto(esperaB, minutoAbs));
 
-        for (let i = 0; i < muelles; i++) {
-            document.getElementById(`camion${esc}-${i}`).textContent = '';
+    actualizarMuelles('A', ocupacionMuellesA, minutoAbs, params.muellesA);
+    actualizarMuelles('B', ocupacionMuellesB, minutoAbs, params.muellesB);
+
+    document.getElementById('tiempoActual').textContent = formatMinutos(minutoAbs);
+}
+
+function actualizarMuelles(esc, ocupacionMuelles, minutoAbs, numMuelles) {
+    for (let m = 0; m < numMuelles; m++) {
+        const serie = ocupacionMuelles[m];
+        const ocupacion = obtenerValorEnMinuto(serie, minutoAbs);
+        const camionDiv = document.getElementById(`camion${esc}-${m}`);
+        const porcentajeDiv = document.getElementById(`porcentaje${esc}-${m}`);
+        if (camionDiv) camionDiv.textContent = ocupacion > 75 ? ICONO_CAMION : '';
+        if (porcentajeDiv) porcentajeDiv.textContent = ocupacion.toFixed(0) + '%';
+    }
+}
+
+function obtenerValorEnMinuto(serie, minuto) {
+    if (!serie || serie.length === 0) return 0;
+    let valor = 0;
+    for (let i = serie.length - 1; i >= 0; i--) {
+        if (serie[i].x <= minuto) {
+            valor = serie[i].y;
+            break;
         }
-        const colaDiv = document.getElementById(`cola${esc}`);
-        colaDiv.innerHTML = '';
-        const enCola = [];
-        registros.forEach(r => {
-            if (r.llegada <= minuto && r.inicioServicio > minuto) {
-                enCola.push({ llegada: r.llegada, espera: minuto - r.llegada });
-            } else if (r.inicioServicio <= minuto && r.finServicio > minuto) {
-                const el = document.getElementById(`camion${esc}-${r.muelle}`);
-                if (el) el.textContent = ICONO_CAMION;
-            }
-        });
-        enCola.sort((a, b) => a.llegada - b.llegada);
-        enCola.forEach(c => {
-            const item = document.createElement('div');
-            item.className = 'camion-en-cola';
-            item.innerHTML = `${ICONO_CAMION} <span class="reloj-espera">${formatMinutos(c.espera)}</span>`;
-            colaDiv.appendChild(item);
-        });
-    });
-    document.getElementById('tiempoActual').textContent = formatMinutos(minuto);
+    }
+    return valor;
 }
 
 function actualizarSlider() {
-    document.getElementById('sliderTiempo').max = duracionTotal;
-    document.getElementById('sliderTiempo').value = tiempoSimulacion;
+    const slider = document.getElementById('sliderTiempo');
+    slider.min = window.seriesAgregadas.params.aperturaMin;
+    slider.max = window.seriesAgregadas.params.cierreMin;
+    slider.value = tiempoSimulacion;
 }
 
 function togglePlay() {
@@ -101,7 +111,8 @@ function togglePlay() {
         document.getElementById('btnPlayPause').textContent = '▶️';
     } else {
         animacionInterval = setInterval(() => {
-            if (tiempoSimulacion >= duracionTotal) {
+            const { aperturaMin, cierreMin } = window.seriesAgregadas.params;
+            if (tiempoSimulacion >= cierreMin) {
                 clearInterval(animacionInterval);
                 reproduciendo = false;
                 document.getElementById('btnPlayPause').textContent = '▶️';
@@ -118,7 +129,7 @@ function togglePlay() {
 
 function rebobinar() {
     if (reproduciendo) togglePlay();
-    tiempoSimulacion = 0;
+    tiempoSimulacion = window.seriesAgregadas.params.aperturaMin;
     actualizarSlider();
     actualizarAnimacion(tiempoSimulacion);
 }
