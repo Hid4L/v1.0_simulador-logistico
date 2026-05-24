@@ -183,10 +183,10 @@ function formatearAgregado(agregado, f) {
 }
 
 // Ahora recibe los límites para pasarlos a los gráficos
-function actualizarGraficosLineas(indiceIteracion, apertura, cierre) {
+function actualizarGraficosLineas(idx, apertura, cierre) {
     if (todasIteraciones.A.length === 0 || todasIteraciones.B.length === 0) return;
-    const iterA = todasIteraciones.A[indiceIteracion];
-    const iterB = todasIteraciones.B[indiceIteracion];
+    const iterA = todasIteraciones.A[idx];
+    const iterB = todasIteraciones.B[idx];
     if (!iterA || !iterB) return;
 
     dibujarCola(
