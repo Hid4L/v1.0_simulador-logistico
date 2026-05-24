@@ -354,8 +354,7 @@ console.log('btnSimular existe?', !!document.getElementById('btnSimular'));
     // ========== EJECUTAR COMPARATIVA ==========
     document.getElementById('btnSimular').addEventListener('click', () => {
         //console log para descubrir fallos
-        
-            console.log('Botón Simular clickeado');
+        console.log('Inicio del evento btnSimular');
         
         // Lectura de parámetros A (incluyendo nuevos campos)
         const paramsA = {
@@ -380,6 +379,8 @@ console.log('btnSimular existe?', !!document.getElementById('btnSimular'));
             riesgoAveria: +document.getElementById('paramRiesgoAveriaA').value || 0,
             duracionReparacion: +document.getElementById('paramDuracionReparacionA').value || 60
         };
+        //console log para descubrir fallos
+        console.log(' ParamsA leidos', paramsA);
         // Lectura de parámetros B
         const paramsB = {
             muelles: +document.getElementById('paramMuellesB').value,
@@ -402,11 +403,69 @@ console.log('btnSimular existe?', !!document.getElementById('btnSimular'));
             riesgoAveria: +document.getElementById('paramRiesgoAveriaB').value || 0,
             duracionReparacion: +document.getElementById('paramDuracionReparacionB').value || 60
         };
-
+//console log para descubrir fallos
+        console.log(' ParamsB leidos', paramsB);
         // (El resto de la simulación se mantiene igual, usando estos paramsA y paramsB)
         // ... (código de simulación con iteraciones y límites globales)
     });
 
     // ========== RESTO DE EVENTOS (iteración, exportar) SIN CAMBIOS ==========
     // ...
+     updateStore({ params: { A: paramsA, B: paramsB } });
+
+        // Ejecutar simulación
+        const resA = ejecutarSimulacionDetallada(paramsA);
+        const resB = ejecutarSimulacionDetallada(paramsB);
+        const kpiA = calcularKPIs(resA.registros, paramsA.muelles);
+        const kpiB = calcularKPIs(resB.registros, paramsB.muelles);
+
+        // Guardar resultados en el store
+        updateStore({
+            results: {
+                A: { ...resA, kpis: kpiA },
+                B: { ...resB, kpis: kpiB }
+            }
+        });
+
+        // Mostrar KPIs
+        document.getElementById('kpiA').innerHTML = kpiA.error ? `<p style="color:red">${kpiA.error}</p>` : `<p>Camiones: ${kpiA.numCamiones}</p><p>Lead time medio: ${kpiA.leadTimeMedio.toFixed(2)} min</p><p>Espera media: ${kpiA.esperaMedia.toFixed(2)} min</p><p>Estancia total: ${kpiA.estanciaMedia.toFixed(2)} min</p><p>Ocupación: ${kpiA.ocupacionMuelles}%</p>`;
+        document.getElementById('kpiB').innerHTML = kpiB.error ? `<p style="color:red">${kpiB.error}</p>` : `<p>Camiones: ${kpiB.numCamiones}</p><p>Lead time medio: ${kpiB.leadTimeMedio.toFixed(2)} min</p><p>Espera media: ${kpiB.esperaMedia.toFixed(2)} min</p><p>Estancia total: ${kpiB.estanciaMedia.toFixed(2)} min</p><p>Ocupación: ${kpiB.ocupacionMuelles}%</p>`;
+        document.getElementById('kpisGrid').style.display = 'grid';
+
+        // Dibujar gráficos
+        dibujarGantt(resA.registros, resB.registros, paramsA.aperturaMin, paramsA.cierreMin);
+        dibujarCola(resA.eventosCola, resB.eventosCola, paramsA.aperturaMin, paramsA.cierreMin);
+        dibujarEsperaMedia(resA.eventosEspera, resB.eventosEspera, paramsA.aperturaMin, paramsA.cierreMin);
+        document.getElementById('graficos').style.display = 'block';
+        document.getElementById('accionesAnimacion').style.display = 'block';
+    });
+
+    // --- Evento Exportar CSV ---
+    document.getElementById('btnExportar').addEventListener('click', () => {
+        const { results, params } = store;
+        if (!results.A || !results.B) {
+            alert('Primero ejecuta la simulación.');
+            return;
+        }
+        const kpiA = results.A.kpis;
+        const kpiB = results.B.kpis;
+        const csv = [
+            'Indicador,Escenario A,Escenario B',
+            `Muelles,${params.A.muelles},${params.B.muelles}`,
+            `Servicio medio (min),${params.A.mediaServicio},${params.B.mediaServicio}`,
+            `Modo llegadas,${params.A.modoLlegada},${params.B.modoLlegada}`,
+            `Camiones atendidos,${kpiA.numCamiones},${kpiB.numCamiones}`,
+            `Lead time medio,${kpiA.leadTimeMedio?.toFixed(2)||'N/A'},${kpiB.leadTimeMedio?.toFixed(2)||'N/A'}`,
+            `Espera media,${kpiA.esperaMedia?.toFixed(2)||'N/A'},${kpiB.esperaMedia?.toFixed(2)||'N/A'}`,
+            `Estancia media,${kpiA.estanciaMedia?.toFixed(2)||'N/A'},${kpiB.estanciaMedia?.toFixed(2)||'N/A'}`,
+            `Ocupación (%),${kpiA.ocupacionMuelles||'N/A'},${kpiB.ocupacionMuelles||'N/A'}`
+        ].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'resultados_simulacion.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+    });
 }
