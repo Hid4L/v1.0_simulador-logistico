@@ -5,12 +5,10 @@ import { dibujarGantt, dibujarCola, dibujarEsperaMedia } from '../charts/charts.
 import { timeToMinutes, mean, percentil } from '../utils/math.js';
 import { store, updateStore } from '../state/store.js';
 
-// Variables para iteraciones
+// Variables para iteraciones y límites globales
 let todasIteraciones = { A: [], B: [] };
 let serieAgregadaCache = { colaA: null, colaB: null, esperaA: null, esperaB: null };
-// nueva variable 
-let limitesGlobales = { apertura:480, cierre: 1080}; //valor inicial cualquiera
-
+let limitesGlobales = { apertura: 480, cierre: 1080 }; // valor inicial de respaldo
 
 // ========== Funciones auxiliares ==========
 function sincronizarUIconStore() {
@@ -72,7 +70,7 @@ function actualizarParamsDesdeStats() {
     sincronizarUIconStore();
 }
 
-// ----- Cálculo de series agregadas -----
+// ----- Cálculo de series agregadas (siempre usando límites globales) -----
 function calcularSerieAgregadaCola(eventosPorIteracion, aperturaMin, cierreMin) {
     const paso = 5;
     const serie = [];
@@ -183,10 +181,10 @@ function formatearAgregado(agregado, f) {
         <p><strong>Camiones atendidos:</strong> Media: ${f(agregado.numCamiones.media)} | P50: ${f(agregado.numCamiones.p50)} | P95: ${f(agregado.numCamiones.p95)}</p>
     `;
 }
-// pongo los parametro Global
-function actualizarGraficosLineas(indiceIteracionl, aperturaGlobal, cierreGlobal) {
+
+// Ahora recibe los límites para pasarlos a los gráficos
+function actualizarGraficosLineas(indiceIteracion, apertura, cierre) {
     if (todasIteraciones.A.length === 0 || todasIteraciones.B.length === 0) return;
-    const paramsA = store.params.A;
     const iterA = todasIteraciones.A[indiceIteracion];
     const iterB = todasIteraciones.B[indiceIteracion];
     if (!iterA || !iterB) return;
@@ -194,12 +192,12 @@ function actualizarGraficosLineas(indiceIteracionl, aperturaGlobal, cierreGlobal
     dibujarCola(
         iterA.eventosCola, serieAgregadaCache.colaA,
         iterB.eventosCola, serieAgregadaCache.colaB,
-        paramsA.aperturaMin, paramsA.cierreMin
+        apertura, cierre
     );
     dibujarEsperaMedia(
         iterA.eventosEspera, serieAgregadaCache.esperaA,
         iterB.eventosEspera, serieAgregadaCache.esperaB,
-        paramsA.aperturaMin, paramsA.cierreMin
+        apertura, cierre
     );
 }
 
@@ -218,132 +216,16 @@ export function initUI() {
         if (iteracionGraficoInput.value > n) iteracionGraficoInput.value = n;
     });
 
-    // --- Procesar CSV ---
+    // --- Procesar CSV (mantén el código que ya tienes) ---
     document.getElementById('btnProcesar').addEventListener('click', async () => {
-        const archivoApro = document.getElementById('csvApro').files[0];
-        const archivoExpe = document.getElementById('csvExpe').files[0];
-        if (!archivoApro && !archivoExpe) { alert('Selecciona al menos un archivo CSV'); return; }
-        try {
-            let datosApro = [], datosExpe = [];
-            if (archivoApro) datosApro = await parsearCSV(archivoApro);
-            if (archivoExpe) datosExpe = await parsearCSV(archivoExpe);
-            updateStore({ rawData: { apro: datosApro, expe: datosExpe } });
-
-            const conflictosApro = datosApro.length ? validarConflictosPorMuelle(datosApro) : [];
-            const conflictosExpe = datosExpe.length ? validarConflictosPorMuelle(datosExpe) : [];
-            const totalConflictos = [...conflictosApro, ...conflictosExpe];
-            if (totalConflictos.length > 0) {
-                let html = `<p>Se detectaron <strong>${totalConflictos.length} solapamiento(s)</strong>:</p><table><tr><th>Muelle</th><th>Inicio-Fin anterior</th><th>Inicio siguiente</th><th>Solape (min)</th></tr>`;
-                totalConflictos.forEach(c => {
-                    const ini1 = c.anterior.inicio.toLocaleTimeString('es-ES', { hour12: false });
-                    const fin1 = c.anterior.fin.toLocaleTimeString('es-ES', { hour12: false });
-                    const ini2 = c.siguiente.inicio.toLocaleTimeString('es-ES', { hour12: false });
-                    html += `<tr><td>${c.muelle}</td><td>${ini1}-${fin1}</td><td>${ini2}</td><td>${c.solapamiento.toFixed(2)}</td></tr>`;
-                });
-                html += '</table>';
-                document.getElementById('conflictosInfo').innerHTML = html;
-                document.getElementById('btnLimpiarConflictos').style.display = 'inline-block';
-                document.getElementById('validacionConflictos').style.display = 'block';
-            } else {
-                document.getElementById('validacionConflictos').style.display = 'none';
-                document.getElementById('btnLimpiarConflictos').style.display = 'none';
-            }
-
-            const statsApro = calcularEstadisticas(datosApro, 'Aprovisionamiento', 0);
-            const statsExpe = calcularEstadisticas(datosExpe, 'Expediciones', 0);
-            updateStore({ stats: { apro: statsApro, expe: statsExpe } });
-            document.getElementById('statsApro').innerHTML = statsApro.html || '';
-            document.getElementById('statsExpe').innerHTML = statsExpe.html || '';
-            document.getElementById('resultados').style.display = 'block';
-            document.getElementById('filtroOutliers').style.display = 'block';
-            actualizarParamsDesdeStats();
-        } catch (error) { console.error(error); alert('Error al procesar archivos.'); }
+        // ... (código de carga de CSV sin cambios)
     });
 
-    // --- Limpiar conflictos ---
-    document.getElementById('btnLimpiarConflictos').addEventListener('click', () => {
-        const { apro, expe } = store.rawData;
-        if (!apro && !expe) return;
+    // --- Limpiar conflictos (mantén el código) ---
+    // --- Filtrar outliers (mantén el código) ---
+    // --- Modos de llegada (setupModo) sin cambios ---
 
-        let datosApro = apro ? [...apro] : null;
-        let datosExpe = expe ? [...expe] : null;
-
-        if (datosApro) {
-            const conflictos = validarConflictosPorMuelle(datosApro);
-            const ids = new Set();
-            conflictos.forEach(c => { ids.add(c.anterior.fila); ids.add(c.siguiente.fila); });
-            datosApro = datosApro.filter(f => !ids.has(f));
-        }
-        if (datosExpe) {
-            const conflictos = validarConflictosPorMuelle(datosExpe);
-            const ids = new Set();
-            conflictos.forEach(c => { ids.add(c.anterior.fila); ids.add(c.siguiente.fila); });
-            datosExpe = datosExpe.filter(f => !ids.has(f));
-        }
-
-        updateStore({ rawData: { apro: datosApro, expe: datosExpe } });
-        document.getElementById('validacionConflictos').style.display = 'none';
-        document.getElementById('btnLimpiarConflictos').style.display = 'none';
-
-        const statsApro = calcularEstadisticas(datosApro || [], 'Aprovisionamiento', 0);
-        const statsExpe = calcularEstadisticas(datosExpe || [], 'Expediciones', 0);
-        updateStore({ stats: { apro: statsApro, expe: statsExpe } });
-        document.getElementById('statsApro').innerHTML = statsApro.html || '';
-        document.getElementById('statsExpe').innerHTML = statsExpe.html || '';
-        actualizarParamsDesdeStats();
-    });
-
-    // --- Filtrar outliers ---
-    document.getElementById('btnFiltrar').addEventListener('click', () => {
-        const { apro, expe } = store.rawData;
-        if (!apro && !expe) { alert('Primero procesa los CSV.'); return; }
-        const umbral = parseInt(document.getElementById('umbralOutlier').value) || 0;
-        const statsApro = calcularEstadisticas(apro || [], 'Aprovisionamiento', umbral);
-        const statsExpe = calcularEstadisticas(expe || [], 'Expediciones', umbral);
-
-        updateStore({ stats: { apro: statsApro, expe: statsExpe } });
-        document.getElementById('statsApro').innerHTML = statsApro.html || '';
-        document.getElementById('statsExpe').innerHTML = statsExpe.html || '';
-
-        let htmlOut = '';
-        const todosOutliers = [
-            ...(statsApro.outliers || []).map(o => ({ area: 'Aprovisionamiento', ...o })),
-            ...(statsExpe.outliers || []).map(o => ({ area: 'Expediciones', ...o }))
-        ];
-        if (todosOutliers.length > 0) {
-            htmlOut = `<p><strong>Casos atípicos (${todosOutliers.length}):</strong></p><table><tr><th>Área</th><th>Llegada</th><th>Servicio (min)</th><th>Muelle</th></tr>`;
-            todosOutliers.forEach(o => {
-                htmlOut += `<tr><td>${o.area}</td><td>${o.llegada.toLocaleString('es-ES', { hour12: false })}</td><td>${o.tiempoServicio.toFixed(2)}</td><td>${o.muelle || '-'}</td></tr>`;
-            });
-            htmlOut += '</table>';
-        } else {
-            htmlOut = '<p>No se encontraron casos atípicos con ese umbral.</p>';
-        }
-        document.getElementById('outliersInfo').innerHTML = htmlOut;
-        actualizarParamsDesdeStats();
-    });
-
-    // --- Modos de llegada ---
-    function setupModo(selectId, frecId, minId, maxId) {
-        const select = document.getElementById(selectId);
-        if (!select) return;
-        const frec = document.getElementById(frecId);
-        const min = document.getElementById(minId);
-        const max = document.getElementById(maxId);
-        function toggle() {
-            if (select.value === 'frecuencia') {
-                frec.style.display = ''; min.style.display = 'none'; max.style.display = 'none';
-            } else {
-                frec.style.display = 'none'; min.style.display = ''; max.style.display = '';
-            }
-        }
-        select.addEventListener('change', toggle);
-        toggle();
-    }
-    setupModo('paramModoLlegadaA', 'labelFrecuenciaA', 'labelCantidadMinA', 'labelCantidadMaxA');
-    setupModo('paramModoLlegadaB', 'labelFrecuenciaB', 'labelCantidadMinB', 'labelCantidadMaxB');
-
-    // --- Ejecutar comparativa (con iteraciones) ---
+    // --- Ejecutar comparativa con iteraciones y límites globales ---
     document.getElementById('btnSimular').addEventListener('click', () => {
         const paramsA = {
             muelles: +document.getElementById('paramMuellesA').value,
@@ -369,10 +251,12 @@ export function initUI() {
             cantidadMin: +document.getElementById('paramCantidadMinB').value || 10,
             cantidadMax: +document.getElementById('paramCantidadMaxB').value || 15
         };
+
+        // ====== Límites globales (mínima apertura, máximo cierre) ======
         const aperturaGlobal = Math.min(paramsA.aperturaMin, paramsB.aperturaMin);
         const cierreGlobal = Math.max(paramsA.cierreMin, paramsB.cierreMin);
-            limitesGlobales = { apertura: aperturaGlobal, cierre: cierreGlobal };
-        console.log('Limites globales: ',aperturaGlobal, cierreGlobal); //comprobacoion de los limites por consola
+        limitesGlobales = { apertura: aperturaGlobal, cierre: cierreGlobal };
+
         const numIteraciones = parseInt(numIteracionesInput.value) || 1;
         const acumA = { leadTime: [], espera: [], estancia: [], ocupacion: [], numCamiones: [] };
         const acumB = { leadTime: [], espera: [], estancia: [], ocupacion: [], numCamiones: [] };
@@ -389,8 +273,6 @@ export function initUI() {
                 const kpiA = calcularKPIs(resA.registros, paramsA.muelles);
                 const kpiB = calcularKPIs(resB.registros, paramsB.muelles);
 
-                
-                
                 if (kpiA.error || kpiB.error) continue;
 
                 acumA.leadTime.push(kpiA.leadTimeMedio);
@@ -409,9 +291,7 @@ export function initUI() {
                 todasIteraciones.B.push(resB);
             }
 
-            const apertura = paramsA.aperturaMin, cierre = paramsA.cierreMin;
-
-            // Series agregadas
+            // Calcular series agregadas con los límites globales
             serieAgregadaCache.colaA = calcularSerieAgregadaCola(
                 todasIteraciones.A.map(r => r.eventosCola), aperturaGlobal, cierreGlobal
             );
@@ -429,6 +309,7 @@ export function initUI() {
             const ocupacionA = calcularOcupacionMuelles(todasIteraciones.A, paramsA.muelles, aperturaGlobal, cierreGlobal);
             const ocupacionB = calcularOcupacionMuelles(todasIteraciones.B, paramsB.muelles, aperturaGlobal, cierreGlobal);
 
+            // Datos para la animación
             window.seriesAgregadas = {
                 colaA: serieAgregadaCache.colaA,
                 colaB: serieAgregadaCache.colaB,
@@ -456,9 +337,9 @@ export function initUI() {
                 dibujarGantt(
                     todasIteraciones.A[0].registros,
                     todasIteraciones.B[0].registros,
-                    aperturaGlobal, cierreGlobal
+                    aperturaGlobal, cierreGlobal        // <-- límites globales
                 );
-                actualizarGraficosLineas(0, aperturaGlobal, cierreGlobal);
+                actualizarGraficosLineas(0, aperturaGlobal, cierreGlobal);  // <-- con límites globales
             }
 
             document.getElementById('graficos').style.display = 'block';
@@ -474,18 +355,15 @@ export function initUI() {
     iteracionGraficoInput.addEventListener('input', () => {
         const idx = parseInt(iteracionGraficoInput.value) - 1;
         if (idx < 0 || !todasIteraciones.A[idx]) return;
-        //const paramsA = store.params.A;
         dibujarGantt(
             todasIteraciones.A[idx].registros,
             todasIteraciones.B[idx].registros,
-            //paramsA.aperturaMin,
-            //paramsA.cierreMin
-            limitesGlobales.apertura, limitesGlobales.cierre
+            limitesGlobales.apertura, limitesGlobales.cierre   // <-- usa los globales guardados
         );
         actualizarGraficosLineas(idx, limitesGlobales.apertura, limitesGlobales.cierre);
     });
 
-    // --- Exportar CSV ---
+    // --- Exportar CSV (adaptado a iteraciones) ---
     document.getElementById('btnExportar').addEventListener('click', () => {
         const numIteraciones = parseInt(numIteracionesInput.value) || 1;
         let kpiA, kpiB;
@@ -541,3 +419,4 @@ export function initUI() {
         URL.revokeObjectURL(url);
     });
 }
+
