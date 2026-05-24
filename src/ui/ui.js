@@ -14,7 +14,7 @@ let limitesGlobales = { apertura: 480, cierre: 1080 };
 function sincronizarUIconStore() {
     const { A, B } = store.params;
 
-    // Campos básicos
+    // Escenario A
     document.getElementById('paramMuellesA').value = A.muelles;
     document.getElementById('paramServicioMediaA').value = A.mediaServicio;
     document.getElementById('paramServicioDesvA').value = A.desvServicio;
@@ -25,7 +25,6 @@ function sincronizarUIconStore() {
     document.getElementById('paramModoLlegadaA').value = A.modoLlegada;
     document.getElementById('paramCantidadMinA').value = A.cantidadMin;
     document.getElementById('paramCantidadMaxA').value = A.cantidadMax;
-    // Nuevos campos
     document.getElementById('paramPorcentajeFurgoA').value = A.porcentajeFurgo;
     document.getElementById('paramLlegadaInicioA').value = minutesToTime(A.llegadaInicioMin);
     document.getElementById('paramLlegadaFinA').value = minutesToTime(A.llegadaFinMin);
@@ -36,6 +35,7 @@ function sincronizarUIconStore() {
     document.getElementById('paramRiesgoAveriaA').value = A.riesgoAveria;
     document.getElementById('paramDuracionReparacionA').value = A.duracionReparacion;
 
+    // Escenario B
     document.getElementById('paramMuellesB').value = B.muelles;
     document.getElementById('paramServicioMediaB').value = B.mediaServicio;
     document.getElementById('paramServicioDesvB').value = B.desvServicio;
@@ -91,7 +91,7 @@ function actualizarParamsDesdeStats() {
     sincronizarUIconStore();
 }
 
-// ----- Cálculo de series agregadas (sin cambios) -----
+// ----- Cálculo de series agregadas (usando límites globales) -----
 function calcularSerieAgregadaCola(eventosPorIteracion, aperturaMin, cierreMin) {
     const paso = 5;
     const serie = [];
@@ -135,6 +135,7 @@ function calcularSerieAgregadaEspera(eventosPorIteracion, aperturaMin, cierreMin
 function calcularOcupacionMuelles(todasIteraciones, numMuelles, aperturaMin, cierreMin) {
     const paso = 1;
     const ocupacionPorMuelle = Array.from({ length: numMuelles }, () => []);
+
     for (let t = aperturaMin; t <= cierreMin; t += paso) {
         for (let m = 0; m < numMuelles; m++) {
             let ocupadoCount = 0;
@@ -153,11 +154,31 @@ function calcularOcupacionMuelles(todasIteraciones, numMuelles, aperturaMin, cie
 function calcularAgregado(acum) {
     if (acum.leadTime.length === 0) return null;
     return {
-        leadTime: { media: mean(acum.leadTime), p50: percentil(acum.leadTime, 0.5), p95: percentil(acum.leadTime, 0.95) },
-        espera: { media: mean(acum.espera), p50: percentil(acum.espera, 0.5), p95: percentil(acum.espera, 0.95) },
-        estancia: { media: mean(acum.estancia), p50: percentil(acum.estancia, 0.5), p95: percentil(acum.estancia, 0.95) },
-        ocupacion: { media: mean(acum.ocupacion), p50: percentil(acum.ocupacion, 0.5), p95: percentil(acum.ocupacion, 0.95) },
-        numCamiones: { media: mean(acum.numCamiones), p50: percentil(acum.numCamiones, 0.5), p95: percentil(acum.numCamiones, 0.95) }
+        leadTime: {
+            media: mean(acum.leadTime),
+            p50: percentil(acum.leadTime, 0.5),
+            p95: percentil(acum.leadTime, 0.95)
+        },
+        espera: {
+            media: mean(acum.espera),
+            p50: percentil(acum.espera, 0.5),
+            p95: percentil(acum.espera, 0.95)
+        },
+        estancia: {
+            media: mean(acum.estancia),
+            p50: percentil(acum.estancia, 0.5),
+            p95: percentil(acum.estancia, 0.95)
+        },
+        ocupacion: {
+            media: mean(acum.ocupacion),
+            p50: percentil(acum.ocupacion, 0.5),
+            p95: percentil(acum.ocupacion, 0.95)
+        },
+        numCamiones: {
+            media: mean(acum.numCamiones),
+            p50: percentil(acum.numCamiones, 0.5),
+            p95: percentil(acum.numCamiones, 0.95)
+        }
     };
 }
 
@@ -202,10 +223,9 @@ function actualizarGraficosLineas(idx, apertura, cierre) {
 
 // ========== INICIALIZACIÓN ==========
 export function initUI() {
-   console.log('initUi arrancado');
     document.getElementById('simulacion').style.display = 'block';
     sincronizarUIconStore();
-console.log('sincronizar con initUi arrancado');
+
     const numIteracionesInput = document.getElementById('numIteraciones');
     const iteracionGraficoInput = document.getElementById('iteracionGrafico');
 
@@ -215,7 +235,7 @@ console.log('sincronizar con initUi arrancado');
         iteracionGraficoInput.max = n;
         if (iteracionGraficoInput.value > n) iteracionGraficoInput.value = n;
     });
-console.log('btnSimular existe?', !!document.getElementById('btnSimular'));
+
     // ========== BOTONES MODO AVANZADO ==========
     document.getElementById('btnAvanzadoA').addEventListener('click', () => {
         const panel = document.getElementById('panelAvanzadoA');
@@ -353,10 +373,7 @@ console.log('btnSimular existe?', !!document.getElementById('btnSimular'));
 
     // ========== EJECUTAR COMPARATIVA ==========
     document.getElementById('btnSimular').addEventListener('click', () => {
-        //console log para descubrir fallos
-        console.log('Inicio del evento btnSimular');
-        
-        // Lectura de parámetros A (incluyendo nuevos campos)
+        // Lectura de parámetros A (incluyendo todos los nuevos campos)
         const paramsA = {
             muelles: +document.getElementById('paramMuellesA').value,
             mediaServicio: +document.getElementById('paramServicioMediaA').value,
@@ -368,7 +385,6 @@ console.log('btnSimular existe?', !!document.getElementById('btnSimular'));
             modoLlegada: document.getElementById('paramModoLlegadaA').value,
             cantidadMin: +document.getElementById('paramCantidadMinA').value || 10,
             cantidadMax: +document.getElementById('paramCantidadMaxA').value || 15,
-            // Nuevos
             porcentajeFurgo: +document.getElementById('paramPorcentajeFurgoA').value || 0,
             llegadaInicioMin: timeToMinutes(document.getElementById('paramLlegadaInicioA').value),
             llegadaFinMin: timeToMinutes(document.getElementById('paramLlegadaFinA').value),
@@ -379,8 +395,7 @@ console.log('btnSimular existe?', !!document.getElementById('btnSimular'));
             riesgoAveria: +document.getElementById('paramRiesgoAveriaA').value || 0,
             duracionReparacion: +document.getElementById('paramDuracionReparacionA').value || 60
         };
-        //console log para descubrir fallos
-        console.log(' ParamsA leidos', paramsA);
+
         // Lectura de parámetros B
         const paramsB = {
             muelles: +document.getElementById('paramMuellesB').value,
@@ -403,63 +418,165 @@ console.log('btnSimular existe?', !!document.getElementById('btnSimular'));
             riesgoAveria: +document.getElementById('paramRiesgoAveriaB').value || 0,
             duracionReparacion: +document.getElementById('paramDuracionReparacionB').value || 60
         };
-//console log para descubrir fallos
-        console.log(' ParamsB leidos', paramsB);
-        // (El resto de la simulación se mantiene igual, usando estos paramsA y paramsB)
-        // ... (código de simulación con iteraciones y límites globales)
+
+        // Límites globales
+        const aperturaGlobal = Math.min(paramsA.aperturaMin, paramsB.aperturaMin);
+        const cierreGlobal = Math.max(paramsA.cierreMin, paramsB.cierreMin);
+        limitesGlobales = { apertura: aperturaGlobal, cierre: cierreGlobal };
+
+        const numIteraciones = parseInt(numIteracionesInput.value) || 1;
+        const acumA = { leadTime: [], espera: [], estancia: [], ocupacion: [], numCamiones: [] };
+        const acumB = { leadTime: [], espera: [], estancia: [], ocupacion: [], numCamiones: [] };
+        todasIteraciones = { A: [], B: [] };
+
+        const btn = document.getElementById('btnSimular');
+        btn.disabled = true;
+        btn.textContent = 'Calculando...';
+
+        setTimeout(() => {
+            for (let i = 0; i < numIteraciones; i++) {
+                const resA = ejecutarSimulacionDetallada(paramsA);
+                const resB = ejecutarSimulacionDetallada(paramsB);
+                const kpiA = calcularKPIs(resA.registros, paramsA.muelles);
+                const kpiB = calcularKPIs(resB.registros, paramsB.muelles);
+
+                if (kpiA.error || kpiB.error) continue;
+
+                acumA.leadTime.push(kpiA.leadTimeMedio);
+                acumA.espera.push(kpiA.esperaMedia);
+                acumA.estancia.push(kpiA.estanciaMedia);
+                acumA.ocupacion.push(parseFloat(kpiA.ocupacionMuelles));
+                acumA.numCamiones.push(kpiA.numCamiones);
+
+                acumB.leadTime.push(kpiB.leadTimeMedio);
+                acumB.espera.push(kpiB.esperaMedia);
+                acumB.estancia.push(kpiB.estanciaMedia);
+                acumB.ocupacion.push(parseFloat(kpiB.ocupacionMuelles));
+                acumB.numCamiones.push(kpiB.numCamiones);
+
+                todasIteraciones.A.push(resA);
+                todasIteraciones.B.push(resB);
+            }
+
+            // Calcular series agregadas con límites globales
+            serieAgregadaCache.colaA = calcularSerieAgregadaCola(
+                todasIteraciones.A.map(r => r.eventosCola), aperturaGlobal, cierreGlobal
+            );
+            serieAgregadaCache.colaB = calcularSerieAgregadaCola(
+                todasIteraciones.B.map(r => r.eventosCola), aperturaGlobal, cierreGlobal
+            );
+            serieAgregadaCache.esperaA = calcularSerieAgregadaEspera(
+                todasIteraciones.A.map(r => r.eventosEspera), aperturaGlobal, cierreGlobal
+            );
+            serieAgregadaCache.esperaB = calcularSerieAgregadaEspera(
+                todasIteraciones.B.map(r => r.eventosEspera), aperturaGlobal, cierreGlobal
+            );
+
+            const ocupacionA = calcularOcupacionMuelles(todasIteraciones.A, paramsA.muelles, aperturaGlobal, cierreGlobal);
+            const ocupacionB = calcularOcupacionMuelles(todasIteraciones.B, paramsB.muelles, aperturaGlobal, cierreGlobal);
+
+            window.seriesAgregadas = {
+                colaA: serieAgregadaCache.colaA,
+                colaB: serieAgregadaCache.colaB,
+                esperaA: serieAgregadaCache.esperaA,
+                esperaB: serieAgregadaCache.esperaB,
+                ocupacionMuellesA: ocupacionA,
+                ocupacionMuellesB: ocupacionB,
+                params: {
+                    aperturaMin: aperturaGlobal,
+                    cierreMin: cierreGlobal,
+                    muellesA: paramsA.muelles,
+                    muellesB: paramsB.muelles
+                }
+            };
+
+            const agregadoA = calcularAgregado(acumA);
+            const agregadoB = calcularAgregado(acumB);
+            mostrarKPIsAgregados(agregadoA, agregadoB, numIteraciones);
+
+            iteracionGraficoInput.max = numIteraciones;
+            iteracionGraficoInput.value = 1;
+            iteracionGraficoInput.disabled = numIteraciones <= 1;
+
+            if (todasIteraciones.A.length > 0) {
+                dibujarGantt(
+                    todasIteraciones.A[0].registros,
+                    todasIteraciones.B[0].registros,
+                    aperturaGlobal, cierreGlobal
+                );
+                actualizarGraficosLineas(0, aperturaGlobal, cierreGlobal);
+            }
+
+            document.getElementById('graficos').style.display = 'block';
+            document.getElementById('accionesAnimacion').style.display = 'block';
+            updateStore({ params: { A: paramsA, B: paramsB } });
+
+            btn.disabled = false;
+            btn.textContent = 'Ejecutar comparativa';
+        }, 10);
     });
 
-    // ========== RESTO DE EVENTOS (iteración, exportar) SIN CAMBIOS ==========
-    // ...
-     updateStore({ params: { A: paramsA, B: paramsB } });
+    // ========== SELECTOR DE ITERACIÓN PARA GRÁFICOS ==========
+    iteracionGraficoInput.addEventListener('input', () => {
+        const idx = parseInt(iteracionGraficoInput.value) - 1;
+        if (idx < 0 || !todasIteraciones.A[idx]) return;
+        dibujarGantt(
+            todasIteraciones.A[idx].registros,
+            todasIteraciones.B[idx].registros,
+            limitesGlobales.apertura, limitesGlobales.cierre
+        );
+        actualizarGraficosLineas(idx, limitesGlobales.apertura, limitesGlobales.cierre);
+    });
 
-        // Ejecutar simulación
-        const resA = ejecutarSimulacionDetallada(paramsA);
-        const resB = ejecutarSimulacionDetallada(paramsB);
-        const kpiA = calcularKPIs(resA.registros, paramsA.muelles);
-        const kpiB = calcularKPIs(resB.registros, paramsB.muelles);
-
-        // Guardar resultados en el store
-        updateStore({
-            results: {
-                A: { ...resA, kpis: kpiA },
-                B: { ...resB, kpis: kpiB }
-            }
-        });
-
-        // Mostrar KPIs
-        document.getElementById('kpiA').innerHTML = kpiA.error ? `<p style="color:red">${kpiA.error}</p>` : `<p>Camiones: ${kpiA.numCamiones}</p><p>Lead time medio: ${kpiA.leadTimeMedio.toFixed(2)} min</p><p>Espera media: ${kpiA.esperaMedia.toFixed(2)} min</p><p>Estancia total: ${kpiA.estanciaMedia.toFixed(2)} min</p><p>Ocupación: ${kpiA.ocupacionMuelles}%</p>`;
-        document.getElementById('kpiB').innerHTML = kpiB.error ? `<p style="color:red">${kpiB.error}</p>` : `<p>Camiones: ${kpiB.numCamiones}</p><p>Lead time medio: ${kpiB.leadTimeMedio.toFixed(2)} min</p><p>Espera media: ${kpiB.esperaMedia.toFixed(2)} min</p><p>Estancia total: ${kpiB.estanciaMedia.toFixed(2)} min</p><p>Ocupación: ${kpiB.ocupacionMuelles}%</p>`;
-        document.getElementById('kpisGrid').style.display = 'grid';
-
-        // Dibujar gráficos
-        dibujarGantt(resA.registros, resB.registros, paramsA.aperturaMin, paramsA.cierreMin);
-        dibujarCola(resA.eventosCola, resB.eventosCola, paramsA.aperturaMin, paramsA.cierreMin);
-        dibujarEsperaMedia(resA.eventosEspera, resB.eventosEspera, paramsA.aperturaMin, paramsA.cierreMin);
-        document.getElementById('graficos').style.display = 'block';
-        document.getElementById('accionesAnimacion').style.display = 'block';
-    
-
-    // --- Evento Exportar CSV ---
+    // ========== EXPORTAR CSV ==========
     document.getElementById('btnExportar').addEventListener('click', () => {
-        const { results, params } = store;
-        if (!results.A || !results.B) {
+        const numIteraciones = parseInt(numIteracionesInput.value) || 1;
+        let kpiA, kpiB;
+        if (numIteraciones > 1 && todasIteraciones.A.length > 0) {
+            const acumA = { leadTime: [], espera: [], estancia: [], ocupacion: [], numCamiones: [] };
+            const acumB = { leadTime: [], espera: [], estancia: [], ocupacion: [], numCamiones: [] };
+            for (let i = 0; i < todasIteraciones.A.length; i++) {
+                const kA = calcularKPIs(todasIteraciones.A[i].registros, store.params.A.muelles);
+                const kB = calcularKPIs(todasIteraciones.B[i].registros, store.params.B.muelles);
+                if (!kA.error) {
+                    acumA.leadTime.push(kA.leadTimeMedio);
+                    acumA.espera.push(kA.esperaMedia);
+                    acumA.estancia.push(kA.estanciaMedia);
+                    acumA.ocupacion.push(parseFloat(kA.ocupacionMuelles));
+                    acumA.numCamiones.push(kA.numCamiones);
+                }
+                if (!kB.error) {
+                    acumB.leadTime.push(kB.leadTimeMedio);
+                    acumB.espera.push(kB.esperaMedia);
+                    acumB.estancia.push(kB.estanciaMedia);
+                    acumB.ocupacion.push(parseFloat(kB.ocupacionMuelles));
+                    acumB.numCamiones.push(kB.numCamiones);
+                }
+            }
+            kpiA = calcularAgregado(acumA);
+            kpiB = calcularAgregado(acumB);
+        } else if (todasIteraciones.A.length === 1) {
+            const resA = todasIteraciones.A[0];
+            const resB = todasIteraciones.B[0];
+            kpiA = calcularKPIs(resA.registros, store.params.A.muelles);
+            kpiB = calcularKPIs(resB.registros, store.params.B.muelles);
+        } else {
             alert('Primero ejecuta la simulación.');
             return;
         }
-        const kpiA = results.A.kpis;
-        const kpiB = results.B.kpis;
+
         const csv = [
             'Indicador,Escenario A,Escenario B',
-            `Muelles,${params.A.muelles},${params.B.muelles}`,
-            `Servicio medio (min),${params.A.mediaServicio},${params.B.mediaServicio}`,
-            `Modo llegadas,${params.A.modoLlegada},${params.B.modoLlegada}`,
-            `Camiones atendidos,${kpiA.numCamiones},${kpiB.numCamiones}`,
-            `Lead time medio,${kpiA.leadTimeMedio?.toFixed(2)||'N/A'},${kpiB.leadTimeMedio?.toFixed(2)||'N/A'}`,
-            `Espera media,${kpiA.esperaMedia?.toFixed(2)||'N/A'},${kpiB.esperaMedia?.toFixed(2)||'N/A'}`,
-            `Estancia media,${kpiA.estanciaMedia?.toFixed(2)||'N/A'},${kpiB.estanciaMedia?.toFixed(2)||'N/A'}`,
-            `Ocupación (%),${kpiA.ocupacionMuelles||'N/A'},${kpiB.ocupacionMuelles||'N/A'}`
+            `Muelles,${store.params.A.muelles},${store.params.B.muelles}`,
+            `Servicio medio (min),${store.params.A.mediaServicio},${store.params.B.mediaServicio}`,
+            `Modo llegadas,${store.params.A.modoLlegada},${store.params.B.modoLlegada}`,
+            `Camiones atendidos (media),${kpiA?.numCamiones?.media || kpiA?.numCamiones || 'N/A'},${kpiB?.numCamiones?.media || kpiB?.numCamiones || 'N/A'}`,
+            `Lead time medio,${kpiA?.leadTime?.media?.toFixed(2) || kpiA?.leadTimeMedio?.toFixed(2) || 'N/A'},${kpiB?.leadTime?.media?.toFixed(2) || kpiB?.leadTimeMedio?.toFixed(2) || 'N/A'}`,
+            `Espera media,${kpiA?.espera?.media?.toFixed(2) || kpiA?.esperaMedia?.toFixed(2) || 'N/A'},${kpiB?.espera?.media?.toFixed(2) || kpiB?.esperaMedia?.toFixed(2) || 'N/A'}`,
+            `Estancia media,${kpiA?.estancia?.media?.toFixed(2) || kpiA?.estanciaMedia?.toFixed(2) || 'N/A'},${kpiB?.estancia?.media?.toFixed(2) || kpiB?.estanciaMedia?.toFixed(2) || 'N/A'}`,
+            `Ocupación (%),${kpiA?.ocupacion?.media?.toFixed(1) || kpiA?.ocupacionMuelles || 'N/A'},${kpiB?.ocupacion?.media?.toFixed(1) || kpiB?.ocupacionMuelles || 'N/A'}`
         ].join('\n');
+
         const blob = new Blob([csv], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -469,3 +586,4 @@ console.log('btnSimular existe?', !!document.getElementById('btnSimular'));
         URL.revokeObjectURL(url);
     });
 }
+
