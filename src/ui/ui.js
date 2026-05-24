@@ -438,7 +438,7 @@ console.log('btnSimular existe?', !!document.getElementById('btnSimular'));
         dibujarEsperaMedia(resA.eventosEspera, resB.eventosEspera, paramsA.aperturaMin, paramsA.cierreMin);
         document.getElementById('graficos').style.display = 'block';
         document.getElementById('accionesAnimacion').style.display = 'block';
-    });
+    
 
     // --- Evento Exportar CSV ---
     document.getElementById('btnExportar').addEventListener('click', () => {
