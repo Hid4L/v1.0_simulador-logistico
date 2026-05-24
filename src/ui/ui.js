@@ -372,7 +372,7 @@ export function initUI() {
         const aperturaGlobal = Math.min(paramsA.aperturaMin, paramsB.aperturaMin);
         const cierreGlobal = Math.max(paramsA.cierreMin, paramsB.cierreMin);
             limitesGlobales = { apertura: aperturaGlobal, cierre: cierreGlobal };
-
+        console.log('Limites globales: ',aperturaGlobal, cierreGlobal); //comprobacoion de los limites por consola
         const numIteraciones = parseInt(numIteracionesInput.value) || 1;
         const acumA = { leadTime: [], espera: [], estancia: [], ocupacion: [], numCamiones: [] };
         const acumB = { leadTime: [], espera: [], estancia: [], ocupacion: [], numCamiones: [] };
