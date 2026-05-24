@@ -8,6 +8,9 @@ import { store, updateStore } from '../state/store.js';
 // Variables para iteraciones
 let todasIteraciones = { A: [], B: [] };
 let serieAgregadaCache = { colaA: null, colaB: null, esperaA: null, esperaB: null };
+// nueva variable 
+let limitesGlobales = { apertura:480, cierre: 1080}; //valor inicial cualquiera
+
 
 // ========== Funciones auxiliares ==========
 function sincronizarUIconStore() {
@@ -366,6 +369,9 @@ export function initUI() {
             cantidadMin: +document.getElementById('paramCantidadMinB').value || 10,
             cantidadMax: +document.getElementById('paramCantidadMaxB').value || 15
         };
+        const aperturaGlobal = Math.min(paramsA.aperturaMin, paramsB.aperturaMin);
+        const cierreGlobal = Math.max(paramsA.cierreMin, paramsB.cierreMin);
+            limitesGlobales = { apertura: aperturaGlobal, cierre: cierreGlobal };
 
         const numIteraciones = parseInt(numIteracionesInput.value) || 1;
         const acumA = { leadTime: [], espera: [], estancia: [], ocupacion: [], numCamiones: [] };
@@ -383,6 +389,8 @@ export function initUI() {
                 const kpiA = calcularKPIs(resA.registros, paramsA.muelles);
                 const kpiB = calcularKPIs(resB.registros, paramsB.muelles);
 
+                
+                
                 if (kpiA.error || kpiB.error) continue;
 
                 acumA.leadTime.push(kpiA.leadTimeMedio);
@@ -405,21 +413,21 @@ export function initUI() {
 
             // Series agregadas
             serieAgregadaCache.colaA = calcularSerieAgregadaCola(
-                todasIteraciones.A.map(r => r.eventosCola), apertura, cierre
+                todasIteraciones.A.map(r => r.eventosCola), aperturaGlobal, cierreGlobal
             );
             serieAgregadaCache.colaB = calcularSerieAgregadaCola(
-                todasIteraciones.B.map(r => r.eventosCola), apertura, cierre
+                todasIteraciones.B.map(r => r.eventosCola), aperturaGlobal, cierreGlobal
             );
             serieAgregadaCache.esperaA = calcularSerieAgregadaEspera(
-                todasIteraciones.A.map(r => r.eventosEspera), apertura, cierre
+                todasIteraciones.A.map(r => r.eventosEspera), aperturaGlobal, cierreGlobal
             );
             serieAgregadaCache.esperaB = calcularSerieAgregadaEspera(
-                todasIteraciones.B.map(r => r.eventosEspera), apertura, cierre
+                todasIteraciones.B.map(r => r.eventosEspera), aperturaGlobal, cierreGlobal
             );
 
             // Ocupación por muelle
-            const ocupacionA = calcularOcupacionMuelles(todasIteraciones.A, paramsA.muelles, apertura, cierre);
-            const ocupacionB = calcularOcupacionMuelles(todasIteraciones.B, paramsB.muelles, apertura, cierre);
+            const ocupacionA = calcularOcupacionMuelles(todasIteraciones.A, paramsA.muelles, aperturaGlobal, cierreGlobal);
+            const ocupacionB = calcularOcupacionMuelles(todasIteraciones.B, paramsB.muelles, aperturaGlobal, cierreGlobal);
 
             window.seriesAgregadas = {
                 colaA: serieAgregadaCache.colaA,
@@ -429,8 +437,8 @@ export function initUI() {
                 ocupacionMuellesA: ocupacionA,
                 ocupacionMuellesB: ocupacionB,
                 params: {
-                    aperturaMin: apertura,
-                    cierreMin: cierre,
+                    aperturaMin: aperturaGlobal,
+                    cierreMin: cierreGlobal,
                     muellesA: paramsA.muelles,
                     muellesB: paramsB.muelles
                 }
@@ -448,9 +456,9 @@ export function initUI() {
                 dibujarGantt(
                     todasIteraciones.A[0].registros,
                     todasIteraciones.B[0].registros,
-                    apertura, cierre
+                    aperturaGlobal, cierreGlobal
                 );
-                actualizarGraficosLineas(0);
+                actualizarGraficosLineas(0, aperturaGlobal, cierreGlobal);
             }
 
             document.getElementById('graficos').style.display = 'block';
