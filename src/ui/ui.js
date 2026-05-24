@@ -352,6 +352,10 @@ export function initUI() {
 
     // ========== EJECUTAR COMPARATIVA ==========
     document.getElementById('btnSimular').addEventListener('click', () => {
+        //console log para descubrir fallos
+        
+            console.log('Botón Simular clickeado');
+        
         // Lectura de parámetros A (incluyendo nuevos campos)
         const paramsA = {
             muelles: +document.getElementById('paramMuellesA').value,
